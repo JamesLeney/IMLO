@@ -70,7 +70,6 @@ print(f"Std: {std}")
 train_data = datasets.Flowers102(root = 'data', split = 'train', download = True, transform = transforms.Compose([
     #Resize the images to be all the same size
     transforms.Resize((64,64)),
-    transforms.RandomHorizontalFlip()
     #Turn the data into a tensor
     transforms.ToTensor(),
 ]))
@@ -129,7 +128,7 @@ class NeuralNetwork(nn.Module):
 model = NeuralNetwork().to(device)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.SGD(model.parameters(), lr=0.001)
 
 # Train the model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
