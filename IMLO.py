@@ -1,9 +1,14 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
+import torch.nn.functional as F
+import torchvision
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms, models
+import numpy as np
+import math
 import matplotlib.pyplot as plt
+import torch.optim as optim
+import time
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -23,10 +28,10 @@ def mean_std(loader):
     mean = torch.zeros(3)
     std = torch.zeros(3)
     for images, _ in loader:
-        batch_size, height, width = images.shape
+        batch_size, channels, height, width = images.shape
         num_pixels += batch_size * height * width
-        mean += images.mean(axis=(0,2,3)) * batch_size * height * width
-        std += images.std(axis=(0,2,3)) * batch_size * height * width
+        mean += images.mean(axis=(0, 2, 3)) * batch_size * height * width
+        std += images.std(axis=(0, 2, 3)) * batch_size * height * width
 
     mean /= num_pixels
     std /= num_pixels
@@ -34,8 +39,8 @@ def mean_std(loader):
     return mean, std
 
 mean, std = mean_std(total_loader)
-print("Mean:", mean)
-print("Std:", std)
+print(f"Mean: {mean}")
+print(f"Std: {std}")
 
 #create data loader
 total_loader = DataLoader(total_data, batch_size=batch_size, shuffle=True)
@@ -46,19 +51,19 @@ def mean_std(loader):
     mean = torch.zeros(3)
     std = torch.zeros(3)
     for images, _ in loader:
-        batch_size, height, width = images.shape
+        batch_size, channels, height, width = images.shape
         num_pixels += batch_size * height * width
-        mean += images.mean(axis=(0,2,3)) * batch_size * height * width
-        std += images.std(axis=(0,2,3)) * batch_size * height * width
+        mean += images.sum(axis=[0, 2, 3])
+        std += images.pow(2).sum(axis=[0, 2, 3])
 
     mean /= num_pixels
-    std /= num_pixels
+    std = torch.sqrt(std / num_pixels - mean.pow(2))
 
     return mean, std
 
 mean, std = mean_std(total_loader)
-print("Mean:", mean)
-print("Std:", std)
+print(f"Mean: {mean}")
+print(f"Std: {std}")
 
 #Load the data into the train, val and test splits and transforming them
 #to suit our needs
@@ -104,35 +109,23 @@ def show_images(loader):
 # Display some images from the training set
 show_images(train_loader)
 
-class CustomCNN(nn.Module):
-    def __init__(self, num_classes=102):
-        super(CustomCNN, self).__init__()
-        self.features = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2)
-        )
-        self.classifier = nn.Sequential(
-            nn.Dropout(),
-            nn.Linear(256 * 8 * 8, num_classes),
-        )
-
+class NeuralNetwork(nn.Module):
+    
+    def __init__(self):
+        super(NeuralNetwork, self).__init__()
+        self.convolutional1 = nn.Conv2d(3, 32, 5)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.convolutional2 = nn.Conv2d(32, 64, 5)
+        self.Fully1 = nn.Linear(64 * 13 * 13, 102)
+        
     def forward(self, x):
-        x = self.features(x)
+        x = self.pool(F.relu(self.convolutional1(x)))
+        x = self.pool(F.relu(self.convolutional2(x)))
         x = x.view(x.size(0), -1)
-        x = self.classifier(x)
+        x = self.Fully1(x)
         return x
-
-model = CustomCNN(num_classes=102)
+    
+model = NeuralNetwork().to(device)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
