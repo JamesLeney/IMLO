@@ -110,23 +110,37 @@ def show_images(loader):
 show_images(train_loader)
 
 class NeuralNetwork(nn.Module):
-    
-    def __init__(self):
+    def __init__(self, num_classes=102):
         super(NeuralNetwork, self).__init__()
-        self.convolutional1 = nn.Conv2d(3, 32, 5, padding = 1)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.convolutional2 = nn.Conv2d(32, 64, 5, padding = 1)
-        self.convolutional3 = nn.Conv2d(64, 128, 5, padding = 1)
-        self.convolutional4 = nn.Conv2d(128, 256, 5, padding = 1)
-        self.Fully1 = nn.Linear(256 * 2 * 2, 102)
-        
+        self.features = nn.Sequential(
+            nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
+            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
+            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
+            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+        )
+        self.classifier = nn.Sequential(
+            nn.Dropout(),
+            nn.Linear(512 * 4 * 4, 1024),
+            nn.ReLU(inplace=True),
+            nn.Dropout(),
+            nn.Linear(1024, num_classes),
+        )
+
     def forward(self, x):
-        x = self.pool(F.relu(self.convolutional1(x)))
-        x = self.pool(F.relu(self.convolutional2(x)))
-        x = self.pool(F.relu(self.convolutional3(x)))
-        x = self.pool(F.relu(self.convolutional4(x)))
+        x = self.features(x)
         x = x.view(x.size(0), -1)
-        x = self.Fully1(x)
+        x = self.classifier(x)
         return x
     
 model = NeuralNetwork().to(device)
