@@ -134,7 +134,7 @@ optimizer = optim.SGD(model.parameters(), lr=0.001)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
-num_epochs = 50
+num_epochs = 20
 best_val_acc = 0.0
 
 for epoch in range(num_epochs):
