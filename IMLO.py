@@ -12,7 +12,7 @@ import time
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-batch_size = 64
+batch_size = 128
 
 total_data = datasets.Flowers102(root='data', split='train', download=True, transform=transforms.Compose([
     transforms.Resize((64, 64)),
