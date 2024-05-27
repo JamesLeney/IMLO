@@ -128,7 +128,7 @@ class NeuralNetwork(nn.Module):
 model = NeuralNetwork().to(device)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Train the model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
