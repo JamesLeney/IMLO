@@ -1,0 +1,32 @@
+Please ensure you have Python installed on your system.
+
+Please open the folder in your chosen IDE, and open a terminal within that IDE and run the command:
+
+pip install -r requirements.txt
+
+this will install all dependancies required to run the files.
+
+If you do not wish to retrain the model,then run the IMLO test.py file,
+this will use the model parameters in the pre-trained best-model.pth file and output accuracy
+based on the test set.
+
+If you do wish to retrain the model, run the IMLO.py file,
+this will will retrain the model and then output accuracy based on the test set.
+
+For a virtual environment, please ensure you have conda installed on your system,
+then open a conda terminal, navigate to this folder, and use the command:
+
+conda env create -f environment.yml
+
+then activate the environment by running the command:
+
+conda activate flowers102_env
+
+If you do not wish to retrain the model:
+Navigate again to this folder and run the command:
+
+python IMLOtestvir.py
+
+If you do wish to retrain the model:
+Navigate again to this folder and run the command:
+python IMLOtestvir.py
